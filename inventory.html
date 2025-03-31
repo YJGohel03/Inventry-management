@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ADMIN Dashboard</title>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Cursor Follower -->
+    <div id="cursor-follower"></div>
+
+    <header>
+      <nav>
+        <div class="header-container">
+          <div class="logo-container">
+            <img src="Logo.png" alt="Logo" />
+            <span class="admin-title" style="font-size: 24px; font-weight: bold"
+              >Admin Dashboard</span
+            >
+          </div>
+          <button class="logout-btn" onclick="logout()">Log out</button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="dashboard-container">
+      <aside class="sidebar">
+        <nav class="navigation">
+          <div class="search-container">
+            <div class="search-input-wrapper">
+              <div class="search-icon">
+                <img src="icons/search-icon.svg" alt="search-icon.svg" srcset="" />
+              </div>
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search products..."
+                class="search-input"
+              />
+            </div>
+          </div>
+          <button class="nav-item" id="all-products-btn">
+            <div class="nav-icon">
+              <img src="icons/product.svg" alt="" srcset="" />
+            </div>
+            <span class="nav-text">All Products</span>
+          </button>
+          <button class="nav-item" id="low-inventory-btn">
+            <div class="nav-icon">
+              <img src="icons/low.svg" alt="" srcset="" />
+            </div>
+            <span class="nav-text">Low Inventory</span>
+          </button>
+          <button class="nav-item" id="add-product-btn" onclick="showAddProductSection()">
+            <div class="nav-icon">
+              <img src="icons/+.svg" alt="" srcset="" />
+            </div>
+            <span class="nav-text">Add New Product</span>
+          </button>
+        </nav>
+      </aside>
+      <main class="main-content">
+        <!-- All Products / Low Inventory Section -->
+        <section class="products-section" id="products-section">
+          <header class="products-header">
+            <h1 class="products-title" id="section-title">All Products</h1>
+            <span class="products-count" id="section-count">5 items</span>
+          </header>
+          <div class="product-list" id="products-list">
+            <!-- Products will be dynamically inserted here -->
+          </div>
+        </section>
+
+        <!-- Add Product Section -->
+        <section class="add-product-section" id="add-product-section">
+          <header class="products-header">
+            <h1 class="products-title">Add New Product</h1>
+          </header>
+          <form id="add-product-form">
+            <label for="product-id">Product ID:</label>
+            <input type="text" id="product-id" placeholder="Enter Product ID" required /><br />
+
+            <label for="product-name">Product Name:</label>
+            <input type="text" id="product-name" placeholder="Enter Product Name" required /><br />
+
+            <label for="product-category">Product Category:</label>
+            <input type="text" id="product-category" placeholder="Enter Product Category" required /><br />
+
+            <label for="product-price">Price (₹):</label>
+            <input type="tel" id="product-price" placeholder="Enter Price" required /><br />
+
+            <label for="product-quantity">Quantity:</label>
+            <input type="tel" id="product-quantity" placeholder="Enter Quantity" required /><br />
+
+            <label for="low-quantity-alert">Low Quantity Alert:</label>
+            <input type="tel" id="low-quantity-alert" placeholder="Enter Low Quantity Alert" required /><br />
+
+            <label for="product-image">Product Image:</label>
+            <input type="file" id="product-image" accept="image/*" required /><br />
+
+            <button type="submit" class="save-btn">Add Product</button>
+            <button type="button" class="cancel-btn" onclick="closeAddProductForm()">Cancel</button>
+          </form>
+        </section>
+
+        <!-- Animation Section -->
+        <section class="animation-section" id="animation-section">
+          <canvas id="animation-canvas"></canvas>
+          
+          <!-- Clock Container -->
+          <div class="clock-container">
+            <div class="clock">
+              <div class="hour-hand"></div>
+              <div class="minute-hand"></div>
+              <div class="second-hand"></div>
+                <!-- Add Date, Day, and Digital Time below the clock container -->
+                <div class="clock-info">
+                  <div id="digital-time"></div>
+                  <div id="date-day"></div>
+                </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Edit Product Form -->
+    <div class="edit-product-form" id="edit-form">
+      <h2>Edit Product</h2>
+      <input type="hidden" id="edit-index" />
+
+      <label for="edit-name">Product Name:</label>
+      <input type="text" id="edit-name" placeholder="Enter product name" /><br />
+
+      <label for="edit-price">Price (₹):</label>
+      <input type="tel" id="edit-price" placeholder="Enter price" /><br />
+
+      <label for="edit-quantity">Quantity:</label>
+      <input type="tel" id="edit-quantity" placeholder="Enter quantity" /><br />
+
+      <label for="edit-category">Product Category:</label>
+      <input type="text" id="edit-category" placeholder="Enter product category" /><br />
+
+      <label for="edit-low-quantity-alert">Low Quantity Alert:</label>
+      <input type="tel" id="edit-low-quantity-alert" placeholder="Enter Low Quantity Alert" /><br />
+
+      <label for="edit-img">Product Image:</label>
+      <input type="file" id="edit-file" placeholder="upload image" accept="image/*" /><br />
+
+      <button class="save-btn" onclick="saveUpdatedProduct()">Save</button>
+      <button class="cancel-btn" onclick="closeEditForm()">Cancel</button>
+    </div>
+
+    <script>
+      // Load products from local storage or use default data
+      let products = JSON.parse(localStorage.getItem("products")) || [
+        {
+          id: "1",
+          name: "Parle G",
+          price: 10,
+          quantity: 75,
+          lowQuantityAlert: 5,
+          image: "download.jpg",
+          category: "Cookies",
+        },
+        {
+          id: "2",
+          name: "Maggie",
+          price: 24,
+          quantity: 2,
+          lowQuantityAlert: 5,
+          image: "Maggie.jpg",
+          category: "Snacks",
+        },
+        {
+          id: "3",
+          name: "Kitkat",
+          price: 20,
+          quantity: 3,
+          lowQuantityAlert: 5,
+          image: "kitkat.jpg",
+          category: "Chocolate",
+        },
+        {
+          id: "4",
+          name: "Coca Cola",
+          price: 40,
+          quantity: 25,
+          lowQuantityAlert: 5,
+          image: "cocacola.jpg",
+          category: "Soft Drink",
+        },
+        {
+          id: "5",
+          name: "Gems",
+          price: 10,
+          quantity: 10,
+          lowQuantityAlert: 5,
+          image: "gems.jpg",
+          category: "Chocolate",
+        },
+      ];
+
+      // Function to save products to local storage
+      function saveProductsToLocalStorage() {
+        localStorage.setItem("products", JSON.stringify(products));
+      }
+
+      // Function to handle search input
+      function handleSearch() {
+        const searchInput = document.getElementById("search-input").value.trim().toLowerCase();
+
+        // Show the All Products section when the user starts typing
+        document.getElementById("products-section").style.display = "block";
+        document.getElementById("add-product-section").style.display = "none";
+
+        // Filter products based on the search input
+        const filteredProducts = products.filter((product) =>
+          product.name.toLowerCase().startsWith(searchInput)
+        );
+
+        // Display the filtered products
+        displayProducts("all", filteredProducts);
+      }
+
+      // Function to display products (updated to accept filtered products)
+      function displayProducts(filter = "all", filteredProducts = null) {
+        const productsList = document.getElementById("products-list");
+        const sectionTitle = document.getElementById("section-title");
+        const sectionCount = document.getElementById("section-count");
+
+        // Use filteredProducts if provided, otherwise filter based on the selected option
+        let productsToDisplay = filteredProducts || products;
+        if (filter === "low") {
+          productsToDisplay = productsToDisplay.filter((product) => product.quantity <= product.lowQuantityAlert);
+        }
+
+        // Sort products alphabetically by name
+        productsToDisplay.sort((a, b) => {
+          const nameA = a.name.toUpperCase();
+          const nameB = b.name.toUpperCase();
+          if (nameA < nameB) return -1;
+          if (nameA > nameB) return 1;
+          return 0;
+        });
+
+        // Clear the current list
+        productsList.innerHTML = "";
+
+        // Update the section title and count
+        sectionTitle.textContent = filter === "all" ? "All Products" : "Low Inventory";
+        sectionCount.textContent = `${productsToDisplay.length} items`;
+
+        // Add products to the list
+        productsToDisplay.forEach((product, index) => {
+          const buttons = filter === "all"
+            ? `
+              <button class="update-btn" onclick="showEditForm(${index})">Update</button>
+              <button class="delete-btn" onclick="deleteProduct(${index})">Delete</button>
+            `
+            : "";
+
+          productsList.innerHTML += `
+            <div class="product">
+              <img src="${product.image}" alt="${product.name}" width="100" height="100" style="border-radius:10px;">
+              <h3>${product.name}</h3>
+              <p><strong>Price:</strong> ₹${product.price}</p>
+              <p><strong>Quantity:</strong> ${product.quantity} item(s)</p>
+              <p><strong>Low Quantity Alert:</strong> ${product.lowQuantityAlert}</p>
+              ${buttons}
+            </div>
+          `;
+        });
+      }
+
+      // Add event listener for search input
+      document.getElementById("search-input").addEventListener("input", handleSearch);
+
+      // Function to hide the animation section
+      function hideAnimationSection() {
+        const animationSection = document.getElementById("animation-section");
+        animationSection.style.display = "none";
+      }
+
+      // Function to show the animation section
+      function showAnimationSection() {
+        const animationSection = document.getElementById("animation-section");
+        animationSection.style.display = "block";
+      }
+
+      // Function to handle button clicks
+      function handleButtonClick(selectedButton, filter) {
+        // Remove active class from all buttons
+        document.querySelectorAll(".nav-item").forEach((button) => {
+          button.classList.remove("nav-item-active");
+        });
+
+        // Add active class to the selected button
+        if (selectedButton) {
+          selectedButton.classList.add("nav-item-active");
+        }
+
+        // Hide Add Product section if not selected
+        if (filter !== "add") {
+          document.getElementById("add-product-section").style.display = "none";
+          // Show All Products/Low Inventory section
+          document.getElementById("products-section").style.display = "block";
+        }
+
+        // Hide the animation section when any section is selected
+        hideAnimationSection();
+
+        // Display the corresponding products
+        if (filter === "all" || filter === "low") {
+          displayProducts(filter);
+        }
+      }
+
+      // Function to show the Add Product section
+      function showAddProductSection() {
+        // Remove active class from all buttons
+        document.querySelectorAll(".nav-item").forEach((button) => {
+          button.classList.remove("nav-item-active");
+        });
+
+        // Add active class to the "Add Product" button
+        document.getElementById("add-product-btn").classList.add("nav-item-active");
+
+        // Hide All Products/Low Inventory section
+        document.getElementById("products-section").style.display = "none";
+        // Show Add Product section
+        document.getElementById("add-product-section").style.display = "block";
+
+        // Hide the animation section when Add Product section is selected
+        hideAnimationSection();
+      }
+
+      // Function to close the Add Product section
+      function closeAddProductForm() {
+        // Hide Add Product section
+        document.getElementById("add-product-section").style.display = "none";
+        // Show All Products section
+        document.getElementById("products-section").style.display = "block";
+
+        // Show the animation section when the Add Product section is closed
+        showAnimationSection();
+      }
+
+      // Function to show the edit form
+      function showEditForm(index) {
+        let product = products[index];
+        document.getElementById("edit-index").value = index;
+        document.getElementById("edit-name").value = product.name;
+        document.getElementById("edit-price").value = product.price;
+        document.getElementById("edit-quantity").value = product.quantity;
+        document.getElementById("edit-category").value = product.category;
+        document.getElementById("edit-low-quantity-alert").value = product.lowQuantityAlert;
+        document.getElementById("edit-form").style.display = "block";
+      }
+
+      // Function to save updated product
+      function saveUpdatedProduct() {
+        let index = document.getElementById("edit-index").value;
+        let name = document.getElementById("edit-name").value.trim();
+        let price = parseFloat(document.getElementById("edit-price").value);
+        let quantity = parseInt(document.getElementById("edit-quantity").value);
+        let category = document.getElementById("edit-category").value.trim();
+        let lowQuantityAlert = parseInt(document.getElementById("edit-low-quantity-alert").value);
+        let imageInput = document.getElementById("edit-file");
+
+        // Name Validation
+        if (!name) {
+          alert("Product name cannot be empty.");
+          return;
+        }
+
+        // Price and Quantity Validation
+        if (isNaN(price) || price <= 0) {
+          alert("Price must be greater than 0.");
+          return;
+        }
+        if (isNaN(quantity) || quantity <= 0) {
+          alert("Quantity must be greater than 0.");
+          return;
+        }
+        if (isNaN(lowQuantityAlert) || lowQuantityAlert <= 0) {
+          alert("Low Quantity Alert must be greater than 0.");
+          return;
+        }
+
+        // Update product details
+        products[index].name = name;
+        products[index].price = price;
+        products[index].quantity = quantity;
+        products[index].category = category;
+        products[index].lowQuantityAlert = lowQuantityAlert;
+
+        // Handle image upload (if a new image is selected)
+        if (imageInput.files && imageInput.files[0]) {
+          let reader = new FileReader();
+          reader.onload = function (e) {
+            products[index].image = e.target.result;
+            saveProductsToLocalStorage(); // Save to local storage
+            displayProducts(); // Refresh product list after image update
+          };
+          reader.readAsDataURL(imageInput.files[0]);
+        } else {
+          saveProductsToLocalStorage(); // Save to local storage
+          displayProducts(); // Refresh product list if no new image is uploaded
+        }
+
+        closeEditForm();
+      }
+
+      // Function to close the edit form
+      function closeEditForm() {
+        document.getElementById("edit-form").style.display = "none";
+      }
+
+      // Function to delete a product
+      function deleteProduct(index) {
+        if (confirm("Are you sure you want to delete this product?")) {
+          products.splice(index, 1);
+          saveProductsToLocalStorage(); // Save to local storage
+          displayProducts(); // Refresh product list
+        }
+      }
+
+      // Function to handle Add Product form submission
+      document.getElementById("add-product-form").addEventListener("submit", function (event) {
+        event.preventDefault(); // Prevent form submission
+
+        // Get form values
+        const productId = document.getElementById("product-id").value.trim();
+        const productName = document.getElementById("product-name").value.trim();
+        const productCategory = document.getElementById("product-category").value.trim();
+        const productPrice = parseFloat(document.getElementById("product-price").value);
+        const productQuantity = parseInt(document.getElementById("product-quantity").value);
+        const lowQuantityAlert = parseInt(document.getElementById("low-quantity-alert").value);
+        const productImageInput = document.getElementById("product-image");
+
+        // Validate inputs
+        if (
+          !productId ||
+          !productName ||
+          !productCategory ||
+          isNaN(productPrice) ||
+          isNaN(productQuantity) ||
+          isNaN(lowQuantityAlert)
+        ) {
+          alert("Please fill all fields correctly.");
+          return;
+        }
+
+        // Handle image upload
+        let productImage = "default-image.jpg"; // Default image
+        if (productImageInput.files && productImageInput.files[0]) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            productImage = e.target.result;
+            addProduct(productId, productName, productCategory, productPrice, productQuantity, lowQuantityAlert, productImage);
+          };
+          reader.readAsDataURL(productImageInput.files[0]);
+        } else {
+          addProduct(productId, productName, productCategory, productPrice, productQuantity, lowQuantityAlert, productImage);
+        }
+      });
+
+      // Function to add a new product
+      function addProduct(id, name, category, price, quantity, lowQuantityAlert, image) {
+        const newProduct = {
+          id: id,
+          name: name,
+          category: category,
+          price: price,
+          quantity: quantity,
+          lowQuantityAlert: lowQuantityAlert,
+          image: image,
+        };
+
+        // Add the new product to the products array
+        products.push(newProduct);
+
+        // Save to local storage
+        saveProductsToLocalStorage();
+
+        // Refresh the product list
+        displayProducts();
+
+        // Close the Add Product section
+        closeAddProductForm();
+
+        // Reset the form
+        document.getElementById("add-product-form").reset();
+      }
+
+      // Event listeners for buttons
+      document.getElementById("all-products-btn").addEventListener("click", () => {
+        handleButtonClick(document.getElementById("all-products-btn"), "all");
+      });
+
+      document.getElementById("low-inventory-btn").addEventListener("click", () => {
+        handleButtonClick(document.getElementById("low-inventory-btn"), "low");
+      });
+
+      document.getElementById("add-product-btn").addEventListener("click", () => {
+        showAddProductSection();
+      });
+
+      // Initial load: Hide all sections and remove active class from all buttons
+      document.querySelectorAll(".nav-item").forEach((button) => {
+        button.classList.remove("nav-item-active");
+      });
+
+      document.getElementById("products-section").style.display = "none";
+      document.getElementById("add-product-section").style.display = "none";
+
+      // Cursor Follower Logic
+      const cursorFollower = document.getElementById('cursor-follower');
+
+      document.addEventListener('mousemove', function (e) {
+        cursorFollower.style.left = e.pageX + 'px';
+        cursorFollower.style.top = e.pageY + 'px';
+      });
+
+      document.addEventListener('mouseover', function (e) {
+        if (e.target.classList.contains('nav-item') || e.target.classList.contains('product')) {
+          cursorFollower.style.width = '40px';
+          cursorFollower.style.height = '40px';
+          cursorFollower.style.backgroundColor = 'rgba(59, 130, 246, 0.8)';
+        } else {
+          cursorFollower.style.width = '20px';
+          cursorFollower.style.height = '20px';
+          cursorFollower.style.backgroundColor = 'rgba(59, 130, 246, 0.5)';
+        }
+      });
+
+      window.addEventListener('load', function () {
+        cursorFollower.style.display = 'block'; // Show the cursor follower after the page loads
+      });
+
+      // Particle Animation
+      const canvas = document.getElementById('animation-canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Set canvas size to fit the animation section
+      function setCanvasSize() {
+        const animationSection = document.querySelector('.animation-section');
+        canvas.width = animationSection.clientWidth;
+        canvas.height = animationSection.clientHeight;
+      }
+
+      // Initialize canvas size
+      setCanvasSize();
+
+      // Update canvas size on window resize
+      window.addEventListener('resize', setCanvasSize);
+
+      // Particle class
+      class Particle {
+        constructor(x, y, size, color, velocity) {
+          this.x = x;
+          this.y = y;
+          this.size = size;
+          this.color = color;
+          this.velocity = velocity;
+          this.alpha = 1; // Fade-out effect
+        }
+
+        draw() {
+          ctx.save();
+          ctx.globalAlpha = this.alpha; // Apply fade-out effect
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+          ctx.fillStyle = this.color;
+          ctx.fill();
+          ctx.restore();
+        }
+
+        update() {
+          this.draw();
+          this.x += this.velocity.x;
+          this.y += this.velocity.y;
+          this.alpha -= 0.01; // Gradually fade out
+        }
+      }
+
+      // Particle array
+      let particles = [];
+
+      // Create particles on mouse move
+      canvas.addEventListener('mousemove', (event) => {
+        const rect = canvas.getBoundingClientRect(); // Get canvas position relative to the viewport
+        const mouseX = event.clientX - rect.left; // Adjust for canvas offset
+        const mouseY = event.clientY - rect.top;
+
+        const particleCount = 3; // Fewer particles for a subtle effect
+        const angleIncrement = (Math.PI * 2) / particleCount;
+
+        for (let i = 0; i < particleCount; i++) {
+          const velocity = {
+            x: Math.cos(angleIncrement * i) * 0.5, // Slower movement
+            y: Math.sin(angleIncrement * i) * 0.5,
+          };
+          particles.push(
+            new Particle(
+              mouseX,
+              mouseY,
+              2, // Smaller size
+              `rgba(59, 130, 246, 0.8)`, // Subtle blue color
+              velocity
+            )
+          );
+        }
+      });
+
+      // Animation loop
+      function animate() {
+        requestAnimationFrame(animate);
+        ctx.fillStyle = 'rgba(18, 18, 18, 0.05)'; // Very subtle fade effect
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((particle, index) => {
+          if (particle.alpha <= 0) {
+            particles.splice(index, 1); // Remove faded particles
+          } else {
+            particle.update();
+          }
+        });
+      }
+
+      animate();
+
+      // Clock Logic
+      function updateClock() {
+        const now = new Date();
+        const hour = now.getHours() % 12;
+        const minute = now.getMinutes();
+        const second = now.getSeconds();
+
+        const hourHand = document.querySelector('.hour-hand');
+        const minuteHand = document.querySelector('.minute-hand');
+        const secondHand = document.querySelector('.second-hand');
+
+        const hourDeg = (hour * 30) + (minute * 0.5);
+        const minuteDeg = (minute * 6) + (second * 0.1);
+        const secondDeg = second * 6;
+
+        hourHand.style.transform = `rotate(${hourDeg}deg)`;
+        minuteHand.style.transform = `rotate(${minuteDeg}deg)`;
+        secondHand.style.transform = `rotate(${secondDeg}deg)`;
+      }
+
+      setInterval(updateClock, 1000);
+      updateClock(); // Initial call to set the clock
+      
+      // Function to update digital time, date, and day
+      function updateDigitalClock() {
+        const now = new Date();
+
+        // Format digital time (HH:MM:SS)
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const digitalTime = `${hours}:${minutes}:${seconds}`;
+
+        // Format date (DD/MM/YYYY)
+        const day = String(now.getDate()).padStart(2, '0');
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+        const year = now.getFullYear();
+        const date = `${day}/${month}/${year}`;
+
+        // Format day (e.g., Monday)
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const dayOfWeek = days[now.getDay()];
+
+        // Update the DOM
+        document.getElementById('digital-time').textContent = digitalTime;
+        document.getElementById('date-day').textContent = `${date} - ${dayOfWeek}`;
+      }
+
+      // Update the digital clock every second
+      setInterval(updateDigitalClock, 1000);
+      updateDigitalClock(); 
+    </script>
+  </body>
+</html>
